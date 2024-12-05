@@ -34,6 +34,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         FFResample.cpp
         IAudioPlayer.cpp
         SLAudioPlayer.cpp
+        utils/Synchronizer.cpp
 )
 
 target_link_libraries(${CMAKE_PROJECT_NAME}

@@ -29,6 +29,10 @@ public:
     }
 };
 
+void XPlayer::init(AAssetManager *manager) {
+    XGLRender::Init(manager);
+}
+
 void XPlayer::start() {
     IDemux *de = new FFDemux();
     de->Open(path);
@@ -95,7 +99,7 @@ void XPlayer::setDataSource(const char *path) {
 }
 
 void XPlayer::setSurface(ANativeWindow *window) {
-    this->window = window;
+    GLVideoView::Init(window);
 }
 
 void XPlayer::setDisplaySize(int width, int height) {
@@ -107,6 +111,19 @@ void XPlayer::setScaleType(int scaleType) {
     this->scaleType = scaleType;
 }
 
-void XPlayer::setListener(void *listener) {
+XPlayerListener *XPlayer::setListener(XPlayerListener *listener) {
+    if (mListener == listener) {
+        return NULL;
+    }
+    XPlayerListener *oldListener = mListener;
+    mListener = listener;
+    return oldListener;
+}
 
+bool XPlayer::isPlaying() const {
+    return mIsPlaying;
+}
+
+bool XPlayer::isPaused() const {
+    return mIsPaused;
 }

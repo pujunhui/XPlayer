@@ -18,9 +18,9 @@ public class XPlayer {
         native_init();
     }
 
-    public XPlayer(Context mContext) {
-        this.mContext = mContext;
-        native_setup(new WeakReference<>(this));
+    public XPlayer(Context context) {
+        this.mContext = context;
+        native_setup(new WeakReference<>(this), context.getAssets());
     }
 
     public void setDataSource(@NonNull String path) {
@@ -33,6 +33,10 @@ public class XPlayer {
 
     public void setDisplaySize(int width, int height) {
         native_setDisplaySize(width, height);
+    }
+
+    public void setScaleType(int scaleType) {
+        native_setScaleType(scaleType);
     }
 
     public void start() {
@@ -64,14 +68,19 @@ public class XPlayer {
     }
 
     public boolean isPlaying() {
-        return true;
+        return native_isPlaying();
     }
 
     public boolean isPaused() {
-        return true;
+        return native_isPaused();
     }
 
-    interface OnCompletionListener {
+    @Override
+    protected void finalize() throws Throwable {
+        native_finalize();
+    }
+
+    public interface OnCompletionListener {
         void onCompletion(XPlayer player);
     }
 
@@ -81,18 +90,24 @@ public class XPlayer {
         mOnCompletionListener = listener;
     }
 
-    private void onComplete() {
-        OnCompletionListener listener = mOnCompletionListener;
+    private static void postEventFromNative(Object xplayer_ref, int what, int arg1, int arg2) {
+        final XPlayer xplayer = (XPlayer) ((WeakReference) xplayer_ref).get();
+        if (xplayer == null) {
+            return;
+        }
+        OnCompletionListener listener = xplayer.mOnCompletionListener;
         if (listener != null) {
-            listener.onCompletion(this);
+            listener.onCompletion(xplayer);
         }
     }
 
     private static native void native_init();
 
-    private native void native_setup(Object player);
+    private native void native_setup(Object player, Object assetManager);
 
     private native void native_release();
+
+    private native void native_finalize();
 
     private native void native_setDataSource(String path);
 
@@ -113,4 +128,8 @@ public class XPlayer {
     private native void native_prepare();
 
     private native void native_reset();
+
+    private native boolean native_isPlaying();
+
+    private native boolean native_isPaused();
 }

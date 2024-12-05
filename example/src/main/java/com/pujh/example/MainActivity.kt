@@ -1,9 +1,14 @@
 package com.pujh.example
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
 import android.view.SurfaceHolder
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -30,16 +35,39 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
         setSupportActionBar(binding.toolbar)
 
+        xPlayer = XPlayer(this)
+
         binding.surfaceView.holder.addCallback(this)
         binding.surfaceView.setOnClickListener {
-            if (xPlayer.isPlaying()) {
+            if (xPlayer.isPlaying) {
                 xPlayer.pause()
-            } else if (xPlayer.isPaused()) {
+            } else if (xPlayer.isPaused) {
                 xPlayer.resume()
             }
         }
 
-        xPlayer = XPlayer(this)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!Environment.isExternalStorageManager()) {
+                val intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                startActivityForResult(intent, 0)
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 0) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    Toast.makeText(this, "已获取MANAGE_EXTERNAL_STORAGE权限", Toast.LENGTH_SHORT)
+                        .show()
+                } else {
+                    Toast.makeText(this, "未获取MANAGE_EXTERNAL_STORAGE权限", Toast.LENGTH_SHORT)
+                        .show()
+                    finish()
+                }
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -49,7 +77,7 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.open_btn) {
-            xPlayer.setDataSource("/sdcard/1080p.mp4")
+            xPlayer.setDataSource("/sdcard/1080.mp4")
             xPlayer.prepare()
             xPlayer.start()
             isPlaying = true
@@ -60,14 +88,14 @@ class MainActivity : AppCompatActivity(), SurfaceHolder.Callback {
 
     override fun onRestart() {
         super.onRestart()
-        if (xPlayer.isPaused()) {
+        if (xPlayer.isPaused) {
             xPlayer.resume()
         }
     }
 
     override fun onStop() {
         super.onStop()
-        if (xPlayer.isPlaying()) {
+        if (xPlayer.isPlaying) {
             xPlayer.pause()
         }
     }

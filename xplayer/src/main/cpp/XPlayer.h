@@ -7,9 +7,18 @@
 
 
 #include <android/native_window.h>
+#include <android/asset_manager.h>
+#include "utils/Synchronizer.h"
+
+class XPlayerListener {
+public:
+    virtual void post_event(int msg, int ext1, int ext2) = 0;
+};
 
 class XPlayer {
 public:
+    void init(AAssetManager *manager);
+
     void start();
 
     void stop();
@@ -30,7 +39,11 @@ public:
 
     void setScaleType(int scaleType);
 
-    void setListener(void *listener);
+    XPlayerListener *setListener(XPlayerListener *listener);
+
+    bool isPlaying() const;
+
+    bool isPaused() const;
 
 private:
     bool mIsPrepared = false;
@@ -39,9 +52,10 @@ private:
 
 private:
     char *path = NULL;
-    ANativeWindow *window = NULL;
     int width, height;
     int scaleType;
+    XPlayerListener *mListener = NULL;
+    Synchronizer *synchronizer = NULL;
 };
 
 
